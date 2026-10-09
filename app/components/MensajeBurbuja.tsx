@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, isValidElement, ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -5,6 +8,43 @@ type Props = {
   rol: string;
   contenido: string;
 };
+
+function extraerTexto(nodo: ReactNode): string {
+  if (typeof nodo === "string") return nodo;
+  if (Array.isArray(nodo)) return nodo.map(extraerTexto).join("");
+  if (isValidElement(nodo)) {
+    return extraerTexto((nodo.props as { children?: ReactNode }).children);
+  }
+  return "";
+}
+
+function BloqueCodigo({ children }: { children: ReactNode }) {
+  const [copiado, setCopiado] = useState(false);
+
+  async function copiar() {
+    try {
+      await navigator.clipboard.writeText(extraerTexto(children).replace(/\n$/, ""));
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 1500);
+    } catch {
+      // si el navegador bloquea el portapapeles, no hacemos nada
+    }
+  }
+
+  return (
+    <div className="relative mb-2 last:mb-0">
+      <button
+        onClick={copiar}
+        className="absolute right-2 top-2 rounded-md border border-borde bg-superficie-alta px-2 py-1 text-xs text-texto-tenue transition-colors hover:text-ambar"
+      >
+        {copiado ? "Copiado" : "Copiar"}
+      </button>
+      <pre className="overflow-x-auto rounded-xl border border-borde bg-noche p-4 pr-20 text-[13px] leading-relaxed [&_code]:bg-transparent [&_code]:p-0">
+        {children}
+      </pre>
+    </div>
+  );
+}
 
 export default function MensajeBurbuja({ rol, contenido }: Props) {
   const esUsuario = rol === "usuario";
@@ -18,7 +58,7 @@ export default function MensajeBurbuja({ rol, contenido }: Props) {
           </div>
         )}
         <div
-          className={`rounded-2xl px-4 py-3 text-[15px] leading-relaxed overflow-x-auto ${
+          className={`min-w-0 break-words rounded-2xl px-4 py-3 text-[15px] leading-relaxed ${
             esUsuario
               ? "bg-ambar text-noche rounded-br-sm whitespace-pre-wrap"
               : "bg-superficie border border-borde text-texto rounded-bl-sm"
@@ -40,6 +80,7 @@ export default function MensajeBurbuja({ rol, contenido }: Props) {
                     {children}
                   </a>
                 ),
+                pre: ({ children }) => <BloqueCodigo>{children}</BloqueCodigo>,
                 code: ({ children }) => (
                   <code className="rounded bg-superficie-alta px-1.5 py-0.5 font-mono text-[13px]">{children}</code>
                 ),

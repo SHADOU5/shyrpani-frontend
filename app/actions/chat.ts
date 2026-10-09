@@ -59,3 +59,15 @@ export async function enviarMensajeAction(params: {
     return { ok: false as const, error: error instanceof Error ? error.message : "Error desconocido" };
   }
 }
+
+
+export async function listarProyectos(usuarioId: string) {
+  const datos = await llamarBackend(`/api/proyectos?usuarioId=${usuarioId}`);
+  return datos.proyectos as {
+    id: string;
+    nombre: string;
+    stack: string;
+    creadoEn: string;
+    _count: { archivos: number };
+  }[];
+}

@@ -7,6 +7,7 @@ import {
   crearConversacion,
   listarMensajes,
   enviarMensajeAction,
+  listarProyectos,
 } from "./actions/chat";
 import Barra from "./components/Barra";
 import MensajeBurbuja from "./components/MensajeBurbuja";
@@ -14,6 +15,7 @@ import CajaEntrada from "./components/CajaEntrada";
 
 type Conversacion = { id: string; titulo: string | null; creadoEn: string };
 type Mensaje = { id: string; rol: string; contenido: string; creadoEn: string };
+type Proyecto = { id: string; nombre: string; stack: string; creadoEn: string; _count: { archivos: number } };
 
 const CLAVE_LOCAL = "shyrpani-usuario-id";
 
@@ -22,6 +24,7 @@ export default function Home() {
   const [conversaciones, setConversaciones] = useState<Conversacion[]>([]);
   const [conversacionId, setConversacionId] = useState<string | null>(null);
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
+  const [proyectos, setProyectos] = useState<Proyecto[]>([]);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const finRef = useRef<HTMLDivElement>(null);
@@ -42,6 +45,9 @@ export default function Home() {
       if (lista.length > 0) {
         setConversacionId(lista[0].id);
       }
+
+      // Los proyectos no son críticos: si falla, el chat sigue funcionando
+      listarProyectos(id).then(setProyectos).catch(() => {});
     }
     iniciar().catch((e) => setError(e.message));
   }, []);
@@ -112,6 +118,9 @@ export default function Home() {
       resultado.mensajeAsistente,
     ]);
 
+    // Refresca el panel de proyectos (por si el asistente creó o modificó uno)
+    listarProyectos(usuarioId).then(setProyectos).catch(() => {});
+
     // Si era una conversación nueva, refresca el título
     if (conversaciones.find((c) => c.id === idConversacionActiva)?.titulo === null) {
       const lista = await listarConversaciones(usuarioId);
@@ -124,6 +133,8 @@ export default function Home() {
       <Barra
         conversaciones={conversaciones}
         conversacionActualId={conversacionId}
+        proyectos={proyectos}
+        usuarioId={usuarioId}
         onSeleccionar={setConversacionId}
         onNueva={manejarNuevaConversacion}
       />

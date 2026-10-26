@@ -17,18 +17,20 @@ type Props = {
   conversaciones: Conversacion[];
   conversacionActualId: string | null;
   proyectos: Proyecto[];
-  usuarioId: string | null;
+  nombre: string;
   onSeleccionar: (id: string) => void;
   onNueva: () => void;
+  onSalir: () => void;
 };
 
 export default function Barra({
   conversaciones,
   conversacionActualId,
   proyectos,
-  usuarioId,
+  nombre,
   onSeleccionar,
   onNueva,
+  onSalir,
 }: Props) {
   return (
     <aside className="hidden w-72 flex-shrink-0 flex-col border-r border-borde bg-superficie sm:flex">
@@ -73,7 +75,7 @@ export default function Barra({
         </ul>
       </nav>
 
-      {proyectos.length > 0 && usuarioId && (
+      {proyectos.length > 0 && (
         <div className="border-t border-borde px-3 py-3">
           <p className="px-2 pb-2 text-xs font-medium uppercase tracking-wide text-texto-tenue">
             Proyectos
@@ -82,7 +84,7 @@ export default function Barra({
             {proyectos.map((p) => (
               <li key={p.id}>
                 <a
-                  href={`/api/proyectos/${p.id}/descargar?usuarioId=${encodeURIComponent(usuarioId)}`}
+                  href={`/api/proyectos/${p.id}/descargar`}
                   download
                   title={`${p.stack} — descargar ZIP`}
                   className="flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm text-texto-tenue transition-colors hover:bg-superficie-alta/60 hover:text-ambar"
@@ -106,6 +108,21 @@ export default function Barra({
           </ul>
         </div>
       )}
+
+      <div className="flex items-center justify-between gap-2 border-t border-borde px-4 py-3">
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-ambar-suave text-xs font-bold text-ambar">
+            {nombre.charAt(0).toUpperCase()}
+          </div>
+          <span className="truncate text-sm text-texto">{nombre}</span>
+        </div>
+        <button
+          onClick={onSalir}
+          className="flex-shrink-0 rounded-md px-2 py-1 text-xs text-texto-tenue transition-colors hover:text-ambar"
+        >
+          Salir
+        </button>
+      </div>
     </aside>
   );
 }

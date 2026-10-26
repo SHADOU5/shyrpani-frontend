@@ -1,21 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-
-const URL_BASE = process.env.SHYRPANI_API_URL!.replace("/api/chat", "");
-const CLAVE_API = process.env.SHYRPANI_API_KEY!;
+import { obtenerSesion } from "../../../../lib/sesion";
+import { pedirAlBackend } from "../../../../lib/backend";
 
 export async function GET(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
-  const usuarioId = req.nextUrl.searchParams.get("usuarioId");
-  if (!usuarioId) {
-    return NextResponse.json({ error: "Falta usuarioId" }, { status: 400 });
+  const sesion = await obtenerSesion();
+  if (!sesion) {
+    return NextResponse.json({ error: "No autenticado" }, { status: 401 });
   }
 
-  const resp = await fetch(
-    `${URL_BASE}/api/proyectos/${encodeURIComponent(id)}/descargar?usuarioId=${encodeURIComponent(usuarioId)}`,
-    { headers: { "x-api-key": CLAVE_API }, cache: "no-store" }
+  const { id } = await params;
+
+  const resp = await pedirAlBackend(
+    `/api/proyectos/${encodeURIComponent(id)}/descargar?usuarioId=${encodeURIComponent(sesion.usuarioId)}`
   );
 
   if (!resp.ok) {
